@@ -137,7 +137,7 @@ dotnet run --project VarlikYönetimi.MVC
 
 ### IDE Ayarları
 - Visual Studio 2022
-  - .NET 6.0 SDK
+  - .NET 8.0 SDK
   - ASP.NET ve web geliştirme iş yükü
   - SQL Server veri araçları
 
@@ -233,8 +233,6 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ## 📞 İletişim
 
-Proje Yöneticisi - [@twitter_handle](https://twitter.com/twitter_handle)
+Proje Linki: [https://github.com/alitumer0/AvansYonetimi](https://github.com/alitumer0/AvansYonetimi)
 
-Proje Linki: [https://github.com/yourusername/VarlikYönetimi](https://github.com/yourusername/VarlikYönetimi)
-
-E-posta: [your.email@example.com](mailto:your.email@example.com) 
+E-posta: [aetumer50@gmail.com](mailto:aetumer50@gmail.com) 
