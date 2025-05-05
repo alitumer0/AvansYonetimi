@@ -1,0 +1,156 @@
+@model IEnumerable<VarlikYönetimi.Core.Entities.AdvanceRequest>
+
+@{
+    ViewData["Title"] = "Avans Talepleri";
+}
+
+@section Styles {
+    <link href="~/css/personelAdvanceRequests.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+}
+
+<div class="container-fluid">
+    <h2 class="mb-4 text-primary font-weight-bold">@ViewData["Title"]</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Bekleyen Avans Talepleri</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Talep No</th>
+                            <th>Personel</th>
+                            <th>Miktar</th>
+                            <th>Talep Tarihi</th>
+                            <th>İstenilen Tarih</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.RequestNumber</td>
+                                <td>@item.User.FullName</td>
+                                <td class="amount-cell">@item.Amount.ToString("C2")</td>
+                                <td class="date-cell">@item.RequestDate.ToShortDateString()</td>
+                                <td class="date-cell">@item.DesiredDate.ToShortDateString()</td>
+                                <td>
+                                    <span class="badge badge-warning">@item.Status</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">
+                                            <i class="fas fa-info-circle"></i> Detaylar
+                                        </a>
+                                        <button type="button" class="btn btn-success btn-sm" onclick="showApproveModal(@item.Id)">
+                                            <i class="fas fa-check"></i> Onayla
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="showRejectModal(@item.Id)">
+                                            <i class="fas fa-times"></i> Reddet
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Onaylama Modeli -->
+<div class="modal fade" id="approveModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold">Avans Talebini Onayla</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <form asp-action="Approve" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="approveRequestId" name="id" />
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Notlar</label>
+                        <textarea name="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Onayla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reddetme Modeli -->
+<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold">Avans Talebini Reddet</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <form asp-action="Reject" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="rejectRequestId" name="id" />
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Red Nedeni</label>
+                        <textarea name="notes" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times"></i> Reddet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showApproveModal(id) {
+            $('#approveRequestId').val(id);
+            $('#approveModal').modal('show');
+        }
+
+        function showRejectModal(id) {
+            $('#rejectRequestId').val(id);
+            $('#rejectModal').modal('show');
+        }
+
+        /
+        $(document).ready(function() {
+            $('#dataTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Turkish.json"
+                },
+                "order": [[3, "desc"]], 
+                "pageLength": 10
+            });
+        });
+    </script>
+} 

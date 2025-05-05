@@ -1,0 +1,200 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using VarlikYönetimi.Core.Enums
+@model IEnumerable<VarlikYönetimi.Core.ViewModels.ApprovalProcessViewModel>
+
+@{
+    ViewData["Title"] = "Onay Süreçleri";
+}
+
+<div class="container-fluid">   
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-2 text-gray-800">Onay Süreçleri</h1>
+                            <p class="text-muted mb-0">Avans taleplerinin onay süreçlerini buradan yönetebilirsiniz.</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="statusFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-filter"></i> Durum Filtresi
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="statusFilter">
+                                    <li><a class="dropdown-item" href="#">Tümü</a></li>
+                                    <li><a class="dropdown-item" href="#">Bekleyen</a></li>
+                                    <li><a class="dropdown-item" href="#">Onaylanan</a></li>
+                                    <li><a class="dropdown-item" href="#">Reddedilen</a></li>
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="levelFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-layer-group"></i> Seviye Filtresi
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="levelFilter">
+                                    <li><a class="dropdown-item" href="#">Tümü</a></li>
+                                    <li><a class="dropdown-item" href="#">Birim Müdürü</a></li>
+                                    <li><a class="dropdown-item" href="#">Direktör</a></li>
+                                    <li><a class="dropdown-item" href="#">Genel Müdür Yardımcısı</a></li>
+                                    <li><a class="dropdown-item" href="#">Genel Müdür</a></li>
+                                    <li><a class="dropdown-item" href="#">Finans Müdürü</a></li>
+                                    <li><a class="dropdown-item" href="#">Ön Muhasebe</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Talep No</th>
+                                    <th>Talep Eden</th>
+                                    <th>Tutar</th>
+                                    <th>Onay Seviyesi</th>
+                                    <th>Durum</th>
+                                    <th>Son Güncelleme</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.RequestNumber</td>
+                                        <td>@item.RequesterName</td>
+                                        <td>@item.Amount.ToString("C")</td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                @(item.CurrentLevel switch {
+                                                    ApprovalLevel.Personel => "Personel",
+                                                    ApprovalLevel.BirimMuduru => "Birim Müdürü",
+                                                    ApprovalLevel.Direktor => "Direktör",
+                                                    ApprovalLevel.GenelMudurYardimcisi => "Genel Müdür Yardımcısı",
+                                                    ApprovalLevel.GenelMudur => "Genel Müdür",
+                                                    ApprovalLevel.FinansMuduru => "Finans Müdürü",
+                                                    ApprovalLevel.OnMuhasebe => "Ön Muhasebe",
+                                                    _ => item.CurrentLevel.ToString()
+                                                })
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@(item.Status switch {
+                                                RequestStatus.Pending => "warning",
+                                                RequestStatus.Approved => "success",
+                                                RequestStatus.Rejected => "danger",
+                                                _ => "secondary"
+                                            })">
+                                                @(item.Status switch {
+                                                    RequestStatus.Pending => "Beklemede",
+                                                    RequestStatus.Approved => "Onaylandı",
+                                                    RequestStatus.Rejected => "Reddedildi",
+                                                    _ => item.Status.ToString()
+                                                })
+                                            </span>
+                                        </td>
+                                        <td>@item.UpdatedAt?.ToString("dd.MM.yyyy HH:mm")</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("Details", "ApprovalProcess", new { id = item.Id })" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Detaylar">
+                                                    <i class="fas fa-info-circle"></i>
+                                                </a>
+                                                @if (item.Status == RequestStatus.Pending)
+                                                {
+                                                    <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#approveModal@(item.Id)" data-bs-tooltip="tooltip" title="Onayla">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal@(item.Id)" data-bs-tooltip="tooltip" title="Reddet">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                }
+                                            </div>
+
+                                            
+                                            <div class="modal fade" id="approveModal@(item.Id)" tabindex="-1" aria-labelledby="approveModalLabel@(item.Id)" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="approveModalLabel@(item.Id)">Onaylama</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form asp-action="Approve" asp-route-id="@item.Id" method="post">
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label for="notes" class="form-label">Notlar</label>
+                                                                    <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                                <button type="submit" class="btn btn-success">Onayla</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            
+                                            <div class="modal fade" id="rejectModal@(item.Id)" tabindex="-1" aria-labelledby="rejectModalLabel@(item.Id)" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="rejectModalLabel@(item.Id)">Reddetme</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form asp-action="Reject" asp-route-id="@item.Id" method="post">
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label for="notes" class="form-label">Red Nedeni</label>
+                                                                    <textarea class="form-control" id="notes" name="notes" rows="3" required></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                                <button type="submit" class="btn btn-danger">Reddet</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#dataTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Turkish.json"
+                },
+                "pageLength": 10,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tümü"]],
+                "order": [[5, "desc"]]
+            });
+
+            
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
+} 

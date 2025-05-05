@@ -1,0 +1,350 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-user-circle fa-3x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h1 class="h3 mb-2 text-gray-800">Hoş Geldiniz, @User.Identity.Name</h1>
+                            <p class="text-muted mb-0">Avans Yönetimi sistemine hoş geldiniz. Bu panel üzerinden avans taleplerinizi yönetebilir, onay süreçlerini takip edebilir ve ödemelerinizi görüntüleyebilirsiniz.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        var userRoles = ViewBag.UserRoles as List<string>;
+
+        if (userRoles.Contains("Admin"))
+        {
+            <div class="row">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Toplam Kullanıcı</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalUsers</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Toplam Avans Talebi</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalRequests</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-money-bill fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Bekleyen Onaylar</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.PendingApprovals</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Toplam Ödeme</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalPayments</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-credit-card fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (userRoles.Contains("Mali İşler"))
+        {           
+            <div class="row">
+                <div class="col-xl-6 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Bekleyen Ödemeler</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.PendingPayments</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-6 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Toplam Ödeme</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalPayments</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-credit-card fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Son Ödemeler</h6>
+                            <a href="@Url.Action("Index", "Payment")" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Yeni Ödeme
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Tutar</th>
+                                            <th>Durum</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var payment in ViewBag.RecentPayments)
+                                        {
+                                            <tr>
+                                                <td>@payment.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                                <td>@payment.Amount.ToString("C")</td>
+                                                <td>
+                                                    <span class="badge bg-@(payment.Status switch {
+                                                        "Pending" => "warning",
+                                                        "Completed" => "success",
+                                                        "Cancelled" => "danger",
+                                                        _ => "secondary"
+                                                    })">
+                                                        @(payment.Status switch {
+                                                            "Pending" => "Beklemede",
+                                                            "Completed" => "Tamamlandı",
+                                                            "Cancelled" => "İptal Edildi",
+                                                            _ => payment.Status
+                                                        })
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="@Url.Action("Details", "Payment", new { id = payment.Id })" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-xl-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Son Avans Taleplerim</h6>
+                            <a href="@Url.Action("Create", "PersonelAdvanceRequests")" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Yeni Talep
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Tutar</th>
+                                            <th>Durum</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var request in ViewBag.UserAdvanceRequests)
+                                        {
+                                            <tr>
+                                                <td>@request.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                                <td>@request.Amount.ToString("C")</td>
+                                                <td>
+                                                    <span class="badge bg-@(request.Status switch {
+                                                        "Pending" => "warning",
+                                                        "Approved" => "success",
+                                                        "Rejected" => "danger",
+                                                        _ => "secondary"
+                                                    })">
+                                                        @(request.Status switch {
+                                                            "Pending" => "Beklemede",
+                                                            "Approved" => "Onaylandı",
+                                                            "Rejected" => "Reddedildi",
+                                                            _ => request.Status
+                                                        })
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="@Url.Action("Details", "AdvanceRequest", new { id = request.Id })" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Son Ödemelerim</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable2" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Tutar</th>
+                                            <th>Durum</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var payment in ViewBag.UserPayments)
+                                        {
+                                            <tr>
+                                                <td>@payment.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                                <td>@payment.Amount.ToString("C")</td>
+                                                <td>
+                                                    <span class="badge bg-@(payment.Status switch {
+                                                        "Pending" => "warning",
+                                                        "Completed" => "success",
+                                                        "Cancelled" => "danger",
+                                                        _ => "secondary"
+                                                    })">
+                                                        @(payment.Status switch {
+                                                            "Pending" => "Beklemede",
+                                                            "Completed" => "Tamamlandı",
+                                                            "Cancelled" => "İptal Edildi",
+                                                            _ => payment.Status
+                                                        })
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="@Url.Action("Details", "Payment", new { id = payment.Id })" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Son Bildirimler</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            @foreach (var notification in ViewBag.RecentNotifications)
+                            {
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@notification.Title</h6>
+                                        <small>@notification.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                    </div>
+                                    <p class="mb-1">@notification.Message</p>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#dataTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Turkish.json"
+                },
+                "pageLength": 5,
+                "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Tümü"]]
+            });
+
+            $('#dataTable2').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Turkish.json"
+                },
+                "pageLength": 5,
+                "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Tümü"]]
+            });
+        });
+    </script>
+}

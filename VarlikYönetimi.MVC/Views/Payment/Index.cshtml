@@ -1,0 +1,82 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using VarlikYönetimi.Core.Enums
+@model IEnumerable<VarlikYönetimi.Core.Entities.Payment>
+
+@{
+    ViewData["Title"] = "Ödemeler";
+}
+
+<div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>@ViewData["Title"]</h2>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Talep No</th>
+                            <th>Tutar</th>
+                            <th>Durum</th>
+                            <th>Ödeme Tarihi</th>
+                            <th>Oluşturulma Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.AdvanceRequest?.RequestNumber</td>
+                                <td>@item.Amount.ToString("C")</td>
+                                <td>
+                                    <span class="badge bg-@(item.Status switch {
+                                        PaymentStatus.Pending => "warning",
+                                        PaymentStatus.Paid => "success",
+                                        PaymentStatus.Overdue => "danger",
+                                        _ => "secondary"
+                                    })">
+                                        @(item.Status switch {
+                                            PaymentStatus.Pending => "Beklemede",
+                                            PaymentStatus.Paid => "Ödendi",
+                                            PaymentStatus.Overdue => "Gecikmiş",
+                                            _ => item.Status.ToString()
+                                        })
+                                    </span>
+                                </td>
+                                <td>@(item.PaymentDate?.ToShortDateString() ?? "-")</td>
+                                <td>@item.CreatedAt.ToShortDateString()</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">
+                                            <i class="bi bi-info-circle"></i>
+                                        </a>
+                                        @if (item.Status == PaymentStatus.Pending)
+                                        {
+                                            <a asp-action="UpdateStatus" asp-route-id="@item.Id" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-check-circle"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+} 

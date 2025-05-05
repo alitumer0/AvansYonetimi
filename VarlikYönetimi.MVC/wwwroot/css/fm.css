@@ -1,0 +1,84 @@
+/* FM Area Styles */
+.fm-dashboard {
+    padding: 20px;
+}
+
+.finance-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.finance-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.summary-item {
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.summary-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #28a745;
+}
+
+.summary-label {
+    font-size: 14px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.transaction-list {
+    margin-top: 20px;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.transaction-date {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.transaction-amount {
+    font-weight: 500;
+}
+
+.amount-positive {
+    color: #28a745;
+}
+
+.amount-negative {
+    color: #dc3545;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .finance-summary {
+        flex-direction: column;
+    }
+    
+    .summary-item {
+        margin-bottom: 10px;
+    }
+    
+    .transaction-item {
+        flex-direction: column;
+    }
+    
+    .transaction-date {
+        margin-bottom: 5px;
+    }
+} 

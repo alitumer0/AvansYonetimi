@@ -1,0 +1,369 @@
+@model VarlikYönetimi.Core.ViewModels.AdvanceRequestViewModel
+@using VarlikYönetimi.Core.Enums
+
+@{
+    ViewData["Title"] = "Avans Talebi Detayları";
+}
+
+@section Styles {
+    <link href="~/lib/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <style>
+        .custom-card {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border-radius: 0.75rem;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            border-radius: 0.75rem 0.75rem 0 0;
+        }
+        .badge {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 0.5rem;
+        }
+        .approval-history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .limit-check-table {
+            margin-top: 1rem;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .limit-check-table th,
+        .limit-check-table td {
+            padding: 0.75rem;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+
+        .limit-check-table thead th {
+            background-color: #343a40;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .limit-check-table tbody td {
+            text-align: left;
+        }
+
+        .limit-check-table .badge {
+            font-size: 0.875rem;
+            padding: 0.5em 0.75em;
+        }
+
+        .limit-check-table .text-danger {
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .limit-check-table .fas {
+            margin-right: 0.5rem;
+        }
+
+        .swal2-popup {
+            font-size: 0.9rem;
+            width: 42em !important;
+            max-width: 90%;
+        }
+
+        .swal2-html-container {
+            margin: 1em 0;
+            overflow-x: auto;
+        }
+
+        .swal2-title {
+            color: #dc3545 !important;
+            font-size: 1.5rem !important;
+        }
+
+        .table-responsive {
+            margin: -1rem;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+}
+
+<div class="container mt-4">
+    <div class="card custom-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Avans Talebi Detayları</h4>
+            <a asp-action="Index" class="btn btn-light">
+                <i class="fas fa-arrow-left"></i> Listeye Dön
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Talep No</dt>
+                        <dd class="col-sm-8">@Model.RequestNumber</dd>
+
+                        <dt class="col-sm-4">Talep Eden</dt>
+                        <dd class="col-sm-8">@Model.RequesterName</dd>
+
+                        <dt class="col-sm-4">Talep Tutarı</dt>
+                        <dd class="col-sm-8">@Model.Amount.ToString("N2") ₺</dd>
+
+                        <dt class="col-sm-4">Talep Tarihi</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-4">İstenilen Tarih</dt>
+                        <dd class="col-sm-8">@Model.DesiredDate.ToString("dd.MM.yyyy")</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Durum</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge @Model.StatusBadgeClass">@Model.StatusText</span>
+                        </dd>
+
+                        <dt class="col-sm-4">Onay Seviyesi</dt>
+                        <dd class="col-sm-8">@Model.CurrentLevel</dd>
+
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <dt class="col-sm-4">Açıklama</dt>
+                            <dd class="col-sm-8">@Model.Description</dd>
+                        }
+
+                        @if (Model.Status == RequestStatus.Approved)
+                        {
+                            <dt class="col-sm-4">Onaylanan Tutar</dt>
+                            <dd class="col-sm-8">@Model.ApprovedAmount?.ToString("N2") ₺</dd>
+
+                            <dt class="col-sm-4">Onay Tarihi</dt>
+                            <dd class="col-sm-8">@Model.ApprovedAt?.ToString("dd.MM.yyyy HH:mm")</dd>
+                        }
+                        else if (Model.Status == RequestStatus.Rejected)
+                        {
+                            <dt class="col-sm-4">Red Nedeni</dt>
+                            <dd class="col-sm-8">@Model.RejectionReason</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            @if (Model.ApprovalHistory != null && Model.ApprovalHistory.Any())
+            {
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h5>Onay Geçmişi</h5>
+                        <div class="table-responsive approval-history">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Onaylayan</th>
+                                        <th>Seviye</th>
+                                        <th>Durum</th>
+                                        <th>Notlar</th>
+                                        <th>Tarih</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var approval in Model.ApprovalHistory)
+                                    {
+                                        <tr>
+                                            <td>@approval.ApproverName</td>
+                                            <td>@approval.Level</td>
+                                            <td>@approval.ActionText</td>
+                                            <td>@approval.Notes</td>
+                                            <td>@approval.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Status == RequestStatus.Pending && Model.CanApprove)
+            {
+                <div class="row mt-4">
+                    <div class="col-12 text-end">
+                        <button type="button" class="btn btn-success" onclick="showApproveModal(@Model.Id)">
+                            <i class="fas fa-check"></i> Onayla
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="showRejectModal(@Model.Id)">
+                            <i class="fas fa-times"></i> Reddet
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.Status == RequestStatus.Pending && Model.CanApprove)
+{
+    <div class="modal fade" id="approveModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Avans Talebini Onayla</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="approveForm">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="approveNotes" class="form-label">Notlar</label>
+                            <textarea id="approveNotes" name="notes" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="button" class="btn btn-success" onclick="approveRequest(@Model.Id)">
+                            <i class="fas fa-check"></i> Onayla
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Avans Talebini Reddet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="rejectForm">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="rejectNotes" class="form-label">Red Nedeni</label>
+                            <textarea id="rejectNotes" name="notes" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="button" class="btn btn-danger" onclick="rejectRequest(@Model.Id)">
+                            <i class="fas fa-times"></i> Reddet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/sweetalert2/sweetalert2.min.js"></script>
+    <script>
+        function showApproveModal(id) {
+            $('#approveModal').modal('show');
+        }
+
+        function showRejectModal(id) {
+            $('#rejectModal').modal('show');
+        }
+
+        function getApprovalLevelText(level) {
+            const levels = {
+                'None': 'Genel',
+                'Personel': 'Personel',
+                'BirimMuduru': 'Birim Müdürü',
+                'Direktor': 'Direktör',
+                'GenelMudurYardimcisi': 'Genel Müdür Yardımcısı',
+                'GenelMudur': 'Genel Müdür',
+                'FinansMuduru': 'Finans Müdürü',
+                'OnMuhasebe': 'Ön Muhasebe'
+            };
+            return levels[level] || level;
+        }
+
+        function approveRequest(id) {
+            const notes = $('#approveNotes').val();
+            const token = $('input[name="__RequestVerificationToken"]').val();
+            
+            $.ajax({
+                url: '@Url.Action("Approve")',
+                type: 'POST',
+                data: { id: id, notes: notes, __RequestVerificationToken: token },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    $('#approveModal').modal('hide');
+                    
+                    if (response.success) {
+                        window.location.href = '@Url.Action("Index", "PersonelAdvanceRequests")';
+                    } else {
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: response.message,
+                            icon: 'error',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#approveModal').modal('hide');
+                    Swal.fire({
+                        title: 'Hata!',
+                        text: 'İşlem sırasında bir hata oluştu.',
+                        icon: 'error',
+                        confirmButtonText: 'Tamam'
+                    });
+                }
+            });
+        }
+
+        function rejectRequest(id) {
+            const notes = $('#rejectNotes').val();
+            const token = $('input[name="__RequestVerificationToken"]').val();
+            
+            if (!notes) {
+                Swal.fire({
+                    title: 'Uyarı!',
+                    text: 'Lütfen red nedenini belirtiniz.',
+                    icon: 'warning',
+                    confirmButtonText: 'Tamam'
+                });
+                return;
+            }
+            
+            $.ajax({
+                url: '@Url.Action("Reject")',
+                type: 'POST',
+                data: { id: id, notes: notes, __RequestVerificationToken: token },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    $('#rejectModal').modal('hide');
+                    
+                    if (response.success) {
+                        window.location.href = '@Url.Action("Index", "PersonelAdvanceRequests")';
+                    } else {
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: response.message,
+                            icon: 'error',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#rejectModal').modal('hide');
+                    Swal.fire({
+                        title: 'Hata!',
+                        text: 'İşlem sırasında bir hata oluştu.',
+                        icon: 'error',
+                        confirmButtonText: 'Tamam'
+                    });
+                }
+            });
+        }
+    </script>
+} 

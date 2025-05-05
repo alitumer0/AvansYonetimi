@@ -1,0 +1,68 @@
+@model VarlikYönetimi.Core.Entities.Notification
+
+@{
+    ViewData["Title"] = "Bildirim Detayı";
+}
+
+<div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>@ViewData["Title"]</h2>
+        </div>
+        <div class="col text-end">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Geri
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Başlık</dt>
+                <dd class="col-sm-9">@Model.Title</dd>
+
+                <dt class="col-sm-3">Mesaj</dt>
+                <dd class="col-sm-9">@Model.Message</dd>
+
+                <dt class="col-sm-3">Tip</dt>
+                <dd class="col-sm-9">@Model.Type</dd>
+
+                <dt class="col-sm-3">Durum</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-@(Model.IsRead ? "success" : "warning")">
+                        @(Model.IsRead ? "Okundu" : "Okunmadı")
+                    </span>
+                </dd>
+
+                <dt class="col-sm-3">Oluşturulma Tarihi</dt>
+                <dd class="col-sm-9">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                @if (Model.ReadAt.HasValue)
+                {
+                    <dt class="col-sm-3">Okunma Tarihi</dt>
+                    <dd class="col-sm-9">@Model.ReadAt.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                }
+
+                @if (Model.AdvanceRequestId.HasValue)
+                {
+                    <dt class="col-sm-3">Avans Talebi</dt>
+                    <dd class="col-sm-9">
+                        <a asp-controller="PersonelAdvanceRequests" asp-action="Details" asp-route-id="@Model.AdvanceRequestId">
+                            Avans Talebi #@Model.AdvanceRequestId
+                        </a>
+                    </dd>
+                }
+            </dl>
+
+            @if (!Model.IsRead)
+            {
+                <form asp-action="MarkAsRead" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check"></i> Okundu İşaretle
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</div> 

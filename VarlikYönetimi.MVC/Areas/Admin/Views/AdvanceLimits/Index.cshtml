@@ -1,0 +1,406 @@
+@model VarlikYönetimi.Core.ViewModels.DepartmentLimitsViewModel
+@using VarlikYönetimi.Core.Entities
+@using VarlikYönetimi.Core.Enums
+
+@{
+    ViewData["Title"] = "Avans Limitleri Yönetimi";
+    var validApprovalLevels = Model.ApprovalLevels.Where(x => x != ApprovalLevel.None && x != ApprovalLevel.Personel).ToList();
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-money-bill-wave me-2"></i>Avans Limitleri Yönetimi
+        </h2>
+    </div>
+
+    <div class="row">
+    <!-- Genel Avans Limitleri -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-globe me-2"></i>Genel Avans Limitleri
+            </h5>
+        </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                <div class="col-md-6">
+                            <div class="card border-info h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-info">
+                                        <i class="fas fa-arrow-down me-2"></i>Minimum Tutar
+                                    </h5>
+                                    <h3 class="mt-3 mb-0 text-info" id="generalMinAmount">Yükleniyor...</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                            <div class="card border-success h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-success">
+                                        <i class="fas fa-arrow-up me-2"></i>Maksimum Tutar
+                                    </h5>
+                                    <h3 class="mt-3 mb-0 text-success" id="generalMaxAmount">Yükleniyor...</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button class="btn btn-primary edit-general-limit">
+                            <i class="fas fa-edit me-1"></i> Genel Limitleri Düzenle
+                        </button>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Genel limitler, yeni avans talebi oluşturulurken kullanılacak minimum ve maksimum tutarları belirler.
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <!-- Departman Bazlı Limitler -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-building me-2"></i>Departman Bazlı Limitler
+            </h5>
+        </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 30%">Onay Seviyesi</th>
+                                    <th style="width: 25%">Minimum Tutar</th>
+                                    <th style="width: 25%">Maksimum Tutar</th>
+                                    <th style="width: 20%">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (ApprovalLevel level in validApprovalLevels)
+                                {
+                                    var limit = Model.DepartmentLimits.FirstOrDefault(l => l.DepartmentId == null && l.ApprovalLevel == level);
+                                    <tr>
+                                        <td class="align-middle">
+                                            <i class="fas fa-user-shield me-2"></i>@GetApprovalLevelName(level)
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="badge bg-info">@(limit?.MinAmount.ToString("C2") ?? "-")</span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="badge bg-success">@(limit?.MaxAmount.ToString("C2") ?? "-")</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary edit-limit" 
+                                                    data-department-id="" 
+                                                    data-approval-level="@((int)level)"
+                                                    data-department-name="Genel"
+                                                    data-approval-level-name="@GetApprovalLevelName(level)"
+                                                    data-min-amount="@(limit?.MinAmount ?? 0)"
+                                                    data-max-amount="@(limit?.MaxAmount ?? 0)">
+                                                <i class="fas fa-edit me-1"></i> Düzenle
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Departmanlar -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-sitemap me-2"></i>Departman Limitleri
+            </h5>
+</div>
+        <div class="card-body">
+            <div class="row">
+                @foreach (var department in Model.Departments)
+                {
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-building me-2"></i>@department.Name
+                                </h6>
+            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Onay Seviyesi</th>
+                                            <th>Min</th>
+                                            <th>Max</th>
+                                            <th>İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (ApprovalLevel level in validApprovalLevels)
+                                        {
+                                            var limit = Model.DepartmentLimits.FirstOrDefault(l => l.DepartmentId == department.Id && l.ApprovalLevel == level);
+                                            <tr>
+                                                <td class="align-middle">
+                                                    <small>@GetApprovalLevelName(level)</small>
+                                                </td>
+                                                <td class="align-middle">
+                                                    <span class="badge bg-info">@(limit?.MinAmount.ToString("C2") ?? "-")</span>
+                                                </td>
+                                                <td class="align-middle">
+                                                    <span class="badge bg-success">@(limit?.MaxAmount.ToString("C2") ?? "-")</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary edit-limit" 
+                                                            data-department-id="@department.Id" 
+                                                            data-approval-level="@((int)level)"
+                                                            data-department-name="@department.Name"
+                                                            data-approval-level-name="@GetApprovalLevelName(level)"
+                                                            data-min-amount="@(limit?.MinAmount ?? 0)"
+                                                            data-max-amount="@(limit?.MaxAmount ?? 0)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                    </div>
+                </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="editLimitModal" tabindex="-1" aria-labelledby="editLimitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editLimitModalLabel">Limit Düzenle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editLimitForm">
+                    <input type="hidden" id="departmentId" name="departmentId" />
+                    <input type="hidden" id="approvalLevel" name="approvalLevel" />
+                <div class="mb-3">
+                    <label class="form-label">Departman</label>
+                        <input type="text" class="form-control" id="departmentName" readonly />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Onay Seviyesi</label>
+                        <input type="text" class="form-control" id="approvalLevelName" readonly />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Minimum Tutar</label>
+                    <div class="input-group">
+                            <input type="number" class="form-control" id="minAmount" name="minAmount" step="0.01" min="0" required />
+                        <span class="input-group-text">₺</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Maksimum Tutar</label>
+                    <div class="input-group">
+                            <input type="number" class="form-control" id="maxAmount" name="maxAmount" step="0.01" min="0" required />
+                        <span class="input-group-text">₺</span>
+                    </div>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="saveLimit">
+                    <i class="fas fa-save me-1"></i> Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(amount);
+        }
+
+        function updateGeneralLimits() {
+                $.ajax({
+                url: '@Url.Action("GetGeneralLimits", "AdvanceLimits")',
+                type: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                        $('#generalMinAmount').text(formatCurrency(response.data.minAmount));
+                        $('#generalMaxAmount').text(formatCurrency(response.data.maxAmount));
+                        } else {
+                        $('#generalMinAmount').text('Limit bulunamadı');
+                        $('#generalMaxAmount').text('Limit bulunamadı');
+                        }
+                    },
+                    error: function() {
+                    $('#generalMinAmount').text('Hata oluştu');
+                    $('#generalMaxAmount').text('Hata oluştu');
+                    }
+                });
+        }
+
+        $(document).ready(function() {
+            
+            updateGeneralLimits();
+
+            $('.edit-general-limit').click(function() {
+                $('#departmentId').val('');
+                $('#departmentName').val('Genel');
+                $('#approvalLevel').val(0);
+                $('#approvalLevelName').val('Genel Limit');
+
+                
+                var minAmountText = $('#generalMinAmount').text();
+                var maxAmountText = $('#generalMaxAmount').text();
+                
+                
+                var minAmount = parseFloat(minAmountText.replace(/[^\d,]/g, '').replace(',', '.'));
+                var maxAmount = parseFloat(maxAmountText.replace(/[^\d,]/g, '').replace(',', '.'));
+                
+                $('#minAmount').val(minAmount);
+                $('#maxAmount').val(maxAmount);
+                
+                $('#editLimitModal').modal('show');
+            });
+
+            $('.edit-limit').click(function() {
+                var departmentId = $(this).data('department-id');
+                var approvalLevel = $(this).data('approval-level');
+                var departmentName = $(this).data('department-name');
+                var approvalLevelName = $(this).data('approval-level-name');
+                var minAmount = $(this).data('min-amount');
+                var maxAmount = $(this).data('max-amount');
+
+               
+                if (minAmount === 0 || maxAmount === 0) {
+                    $.ajax({
+                        url: '@Url.Action("GetGeneralLimits", "AdvanceLimits")',
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.success) {
+                                minAmount = response.data.minAmount;
+                                maxAmount = response.data.maxAmount;
+                            }
+                            updateModalValues(departmentId, approvalLevel, departmentName, approvalLevelName, minAmount, maxAmount);
+                        },
+                        error: function() {
+                            updateModalValues(departmentId, approvalLevel, departmentName, approvalLevelName, minAmount, maxAmount);
+                        }
+                    });
+                } else {
+                    updateModalValues(departmentId, approvalLevel, departmentName, approvalLevelName, minAmount, maxAmount);
+                }
+            });
+
+            function updateModalValues(departmentId, approvalLevel, departmentName, approvalLevelName, minAmount, maxAmount) {
+                $('#departmentId').val(departmentId);
+                $('#approvalLevel').val(approvalLevel);
+                $('#departmentName').val(departmentName);
+                $('#approvalLevelName').val(approvalLevelName);
+                
+                
+                if (typeof minAmount === 'string') {
+                    minAmount = parseFloat(minAmount.replace(/[^\d,]/g, '').replace(',', '.'));
+                }
+                if (typeof maxAmount === 'string') {
+                    maxAmount = parseFloat(maxAmount.replace(/[^\d,]/g, '').replace(',', '.'));
+                }
+                
+                $('#minAmount').val(minAmount);
+                $('#maxAmount').val(maxAmount);
+
+                $('#editLimitModal').modal('show');
+            }
+
+            $('#saveLimit').click(function() {
+                var model = {
+                    departmentId: $('#departmentId').val() ? parseInt($('#departmentId').val()) : null,
+                    approvalLevel: parseInt($('#approvalLevel').val()),
+                    minAmount: parseFloat($('#minAmount').val()),
+                    maxAmount: parseFloat($('#maxAmount').val())
+                };
+
+                $.ajax({
+                    url: '@Url.Action("UpdateLimit", "AdvanceLimits")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(model),
+                    success: function(response) {
+                        if (response.success) {
+                            
+                            updateGeneralLimits();
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Bir hata oluştu: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .card-header {
+        border-bottom: none;
+    }
+
+    .table th {
+        font-weight: 600;
+        background-color: #f8f9fa;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge {
+        font-size: 0.9em;
+        padding: 0.5em 0.75em;
+    }
+
+    .btn-outline-primary {
+        border-width: 1px;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        color: white;
+    }
+</style>
+
+@functions {
+    private string GetApprovalLevelName(ApprovalLevel level)
+    {
+        return level switch
+        {
+            ApprovalLevel.BirimMuduru => "Birim Müdürü",
+            ApprovalLevel.Direktor => "Direktör",
+            ApprovalLevel.GenelMudurYardimcisi => "Genel Müdür Yardımcısı",
+            ApprovalLevel.GenelMudur => "Genel Müdür",
+            ApprovalLevel.FinansMuduru => "Finans Müdürü",
+            ApprovalLevel.OnMuhasebe => "Ön Muhasebe",
+            _ => "Bilinmeyen"
+        };
+    }
+} 

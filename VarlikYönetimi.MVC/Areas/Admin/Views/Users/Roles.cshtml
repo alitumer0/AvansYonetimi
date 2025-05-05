@@ -1,0 +1,50 @@
+@model VarlikYönetimi.MVC.Models.UserViewModel
+@{
+    ViewData["Title"] = "Kullanıcı Rolleri";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Kullanıcı Rolleri</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">@Model.FirstName @Model.LastName - Roller</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="UpdateRoles" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group">
+                    <label class="control-label">Roller</label>
+                    <div class="row">
+                        @foreach (var role in ViewBag.Roles)
+                        {
+                            <div class="col-md-4">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" name="roleIds" value="@role.Id" id="role_@role.Id"
+                                           @(Model.RoleNames.Contains(role.Name) ? "checked" : "")>
+                                    <label class="custom-control-label" for="role_@role.Id">@role.Name</label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                    <a href="@Url.Action("Index", "Users", new { area = "Admin" })" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

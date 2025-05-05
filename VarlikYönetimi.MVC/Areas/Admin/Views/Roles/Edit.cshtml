@@ -1,0 +1,74 @@
+@model VarlikYönetimi.Core.ViewModels.RoleEditViewModel
+@{
+    ViewData["Title"] = "Rol Düzenle";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">@ViewData["Title"]</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Rol Bilgileri</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="form-group">
+                    <label asp-for="Name" class="control-label">Rol Adı</label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Description" class="control-label">Açıklama</label>
+                    <textarea asp-for="Description" class="form-control"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label">Onay Seviyeleri</label>
+                    <div class="row">
+                        @for (int i = 0; i < Model.ApprovalLevels.Count; i++)
+                        {
+                            <div class="col-md-4">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="hidden" asp-for="@Model.ApprovalLevels[i].Level" />
+                                    <input type="checkbox" class="custom-control-input" 
+                                           asp-for="@Model.ApprovalLevels[i].IsSelected" 
+                                           id="level_@Model.ApprovalLevels[i].Level">
+                                    <label class="custom-control-label" for="level_@Model.ApprovalLevels[i].Level">
+                                        @Model.ApprovalLevels[i].Level
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="IsActive" class="control-label">Durum</label>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" asp-for="IsActive" id="isActiveSwitch">
+                        <label class="custom-control-label" for="isActiveSwitch">Aktif</label>
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                    <a href="@Url.Action("Index", "Roles", new { area = "Admin" })" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

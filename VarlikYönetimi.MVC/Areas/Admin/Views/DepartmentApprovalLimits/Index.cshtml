@@ -1,0 +1,195 @@
+@using VarlikYönetimi.Core.Enums
+@{
+    ViewData["Title"] = "Departman Onay Limitleri";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-chart-line me-2"></i>Departman Onay Limitleri
+        </h2>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Departman</th>
+                            <th>Onay Seviyesi</th>
+                            <th>Minimum Tutar</th>
+                            <th>Maksimum Tutar</th>
+                            <th>Güncelleyen</th>
+                            <th>Güncelleme Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var department in ViewBag.Departments)
+                        {
+                            <tr class="department-row" data-department-id="@department.Id">
+                                <td colspan="7" class="bg-light">
+                                    <strong>@department.Name</strong>
+                                </td>
+                            </tr>
+                            @foreach (ApprovalLevel level in ViewBag.ApprovalLevels)
+                            {
+                                <tr class="limit-row" data-department-id="@department.Id" data-approval-level="@((int)level)">
+                                    <td></td>
+                                    <td>@GetApprovalLevelName(level)</td>
+                                    <td class="min-amount">-</td>
+                                    <td class="max-amount">-</td>
+                                    <td class="updated-by">-</td>
+                                    <td class="updated-at">-</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary edit-limit">
+                                            <i class="fas fa-edit"></i> Düzenle
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="limitModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Limit Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="limitForm">
+                    <input type="hidden" id="departmentId">
+                    <input type="hidden" id="approvalLevel">
+                    <div class="mb-3">
+                        <label class="form-label">Minimum Tutar</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="minAmount" step="0.01" min="0" required>
+                            <span class="input-group-text">₺</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Maksimum Tutar</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="maxAmount" step="0.01" min="0" required>
+                            <span class="input-group-text">₺</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="saveLimit">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetApprovalLevelName(ApprovalLevel level)
+    {
+        switch(level)
+        {
+            case ApprovalLevel.BirimMuduru:
+                return "Birim Müdürü";
+            case ApprovalLevel.Direktor:
+                return "Direktör";
+            case ApprovalLevel.GenelMudurYardimcisi:
+                return "Genel Müdür Yardımcısı";
+            case ApprovalLevel.GenelMudur:
+                return "Genel Müdür";
+            case ApprovalLevel.FinansMuduru:
+                return "Finans Müdürü";
+            default:
+                return "Bilinmeyen Seviye";
+        }
+    }
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var limitModal = new bootstrap.Modal(document.getElementById('limitModal'));
+
+            
+            $('.department-row').each(function() {
+                var departmentId = $(this).data('department-id');
+                loadDepartmentLimits(departmentId);
+            });
+
+            function loadDepartmentLimits(departmentId) {
+                $.ajax({
+                    url: '@Url.Action("GetLimitsByDepartment")',
+                    type: 'POST',
+                    data: { departmentId: departmentId },
+                    success: function(response) {
+                        if (response.success) {
+                            response.limits.forEach(function(limit) {
+                                var row = $(`.limit-row[data-department-id="${limit.departmentId}"][data-approval-level="${limit.approvalLevel}"]`);
+                                row.find('.min-amount').text(limit.minAmount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' }));
+                                row.find('.max-amount').text(limit.maxAmount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' }));
+                                row.find('.updated-by').text(limit.updatedBy);
+                                row.find('.updated-at').text(new Date(limit.updatedAt).toLocaleString('tr-TR'));
+                            });
+                        }
+                    }
+                });
+            }
+
+            
+            $(document).on('click', '.edit-limit', function() {
+                var row = $(this).closest('tr');
+                var departmentId = row.data('department-id');
+                var approvalLevel = row.data('approval-level');
+                var minAmount = parseFloat(row.find('.min-amount').text().replace(/[^0-9.-]+/g, ''));
+                var maxAmount = parseFloat(row.find('.max-amount').text().replace(/[^0-9.-]+/g, ''));
+
+                $('#departmentId').val(departmentId);
+                $('#approvalLevel').val(approvalLevel);
+                $('#minAmount').val(minAmount || '');
+                $('#maxAmount').val(maxAmount || '');
+
+                limitModal.show();
+            });
+
+            
+            $('#saveLimit').click(function() {
+                var departmentId = $('#departmentId').val();
+                var approvalLevel = $('#approvalLevel').val();
+                var minAmount = $('#minAmount').val();
+                var maxAmount = $('#maxAmount').val();
+
+                $.ajax({
+                    url: '@Url.Action("UpdateLimit")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        departmentId: departmentId,
+                        approvalLevel: approvalLevel,
+                        minAmount: minAmount,
+                        maxAmount: maxAmount
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            limitModal.hide();
+                            loadDepartmentLimits(departmentId);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Limit güncellenirken bir hata oluştu.');
+                    }
+                });
+            });
+        });
+    </script>
+} 

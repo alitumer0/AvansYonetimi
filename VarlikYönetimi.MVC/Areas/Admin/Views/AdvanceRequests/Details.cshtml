@@ -1,0 +1,196 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Avans Talebi Detayları";
+}
+
+@model VarlikYönetimi.Core.Entities.AdvanceRequest
+@using VarlikYönetimi.Core.Enums
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-advance.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Avans Talebi Detayları</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Talebi Oluşturan</label>
+                                <p class="form-control-static">@Model.User.FullName</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Talep Tarihi</label>
+                                <p class="form-control-static">@Model.RequestDate.ToString("dd.MM.yyyy")</p>
+                            </div>
+                            <div class="form-group">
+                                <label>İstenilen Tarih</label>
+                                <p class="form-control-static">@Model.DesiredDate.ToString("dd.MM.yyyy")</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Talep Tutarı</label>
+                                <p class="form-control-static">@Model.Amount.ToString("C2")</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Onaylanan Tutar</label>
+                                <p class="form-control-static">@(Model.ApprovedAmount?.ToString("C2") ?? "-")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Durum</label>
+                                <p class="form-control-static">
+                                    @switch (Model.Status)
+                                    {
+                                        case RequestStatus.Pending:
+                                            <span class="badge badge-warning">Beklemede</span>
+                                            break;
+                                        case RequestStatus.Approved:
+                                            <span class="badge badge-success">Onaylandı</span>
+                                            break;
+                                        case RequestStatus.Rejected:
+                                            <span class="badge badge-danger">Reddedildi</span>
+                                            break;
+                                        case RequestStatus.Completed:
+                                            <span class="badge badge-info">Tamamlandı</span>
+                                            break;
+                                        default:
+                                            <span class="badge badge-secondary">@Model.Status</span>
+                                            break;
+                                    }
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label>Mevcut Onay Seviyesi</label>
+                                <p class="form-control-static">@Model.CurrentLevel</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Red Sebebi</label>
+                                <p class="form-control-static">@(Model.RejectionReason ?? "-")</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Açıklama</label>
+                                <p class="form-control-static">@Model.Description</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Notlar</label>
+                                <p class="form-control-static">@(Model.Notes ?? "-")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.Documents?.Any() == true)
+                    {
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h4>Ekler</h4>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Dosya Adı</th>
+                                                <th>Boyut</th>
+                                                <th>İşlemler</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var document in Model.Documents)
+                                            {
+                                                <tr>
+                                                    <td>@document.FileName</td>
+                                                    <td>@(document.FileSize / 1024) KB</td>
+                                                    <td>
+                                                        <a href="@document.FilePath" class="btn btn-sm btn-primary" target="_blank">
+                                                            <i class="fas fa-download"></i> İndir
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.Approvals?.Any() == true)
+                    {
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h4>Onay Geçmişi</h4>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Onaylayan</th>
+                                                <th>Seviye</th>
+                                                <th>Durum</th>
+                                                <th>Onaylanan Tutar</th>
+                                                <th>Yorum</th>
+                                                <th>Tarih</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var approval in Model.Approvals.OrderBy(a => a.CreatedAt))
+                                            {
+                                                <tr>
+                                                    <td>@approval.ApproverUser.FullName</td>
+                                                    <td>@approval.Level</td>
+                                                    <td>
+                                                        @switch (approval.Status)
+                                                        {
+                                                            case ApprovalStatus.Approved:
+                                                                <span class="badge badge-success">Onaylandı</span>
+                                                                break;
+                                                            case ApprovalStatus.Rejected:
+                                                                <span class="badge badge-danger">Reddedildi</span>
+                                                                break;
+                                                            case ApprovalStatus.Pending:
+                                                                <span class="badge badge-warning">Beklemede</span>
+                                                                break;
+                                                            default:
+                                                                <span class="badge badge-secondary">@approval.Status</span>
+                                                                break;
+                                                        }
+                                                    </td>
+                                                    <td>@(approval.ApprovedAmount?.ToString("C2") ?? "-")</td>
+                                                    <td>@(approval.Comments ?? "-")</td>
+                                                    <td>@approval.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <a href="/Admin/AdvanceRequests" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+} 

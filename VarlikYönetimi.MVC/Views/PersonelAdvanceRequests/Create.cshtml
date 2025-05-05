@@ -1,0 +1,292 @@
+@model VarlikYönetimi.Core.Entities.AdvanceRequest
+@using VarlikYönetimi.Core.Enums
+@inject VarlikYönetimi.Services.Services.Interfaces.IAdvanceLimitService AdvanceLimitService
+@inject VarlikYönetimi.Services.Services.Interfaces.IAdvanceRequestService AdvanceRequestService
+@inject Microsoft.AspNetCore.Identity.UserManager<VarlikYönetimi.Core.Entities.User> UserManager
+
+@{
+    ViewData["Title"] = "Yeni Avans Talebi";
+    var limits = await AdvanceLimitService.GetByDepartmentAndLevelAsync(null, ApprovalLevel.Personel);
+    var currentUser = await UserManager.GetUserAsync(User);
+    var previousRequests = await AdvanceRequestService.GetByUserIdAsync(currentUser.Id);
+}
+
+@section Styles {
+    <style>
+        .custom-card {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border-radius: 0.75rem;
+        }
+        .custom-card .card-header {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            border-radius: 0.75rem 0.75rem 0 0;
+            padding: 1.5rem;
+        }
+        .form-control, .input-group-text {
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-size: 1rem;
+        }
+        .input-group .form-control {
+            border-start-start-radius: 0;
+            border-end-start-radius: 0;
+        }
+        .input-group-text {
+            background-color: #f8f9fc;
+            border-end-end-radius: 0;
+            border-start-end-radius: 0;
+        }
+        .btn-custom-primary {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        .btn-custom-primary:hover {
+            background: linear-gradient(135deg, #224abe 0%, #4e73df 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .btn-custom-secondary {
+            background: #f8f9fc;
+            color: #5a5c69;
+            border: 1px solid #e3e6f0;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        .btn-custom-secondary:hover {
+            background: #e3e6f0;
+            color: #2e2f37;
+        }
+        .alert-custom-info {
+            background-color: #e1f0ff;
+            border-color: #b6d4ff;
+            color: #0c5460;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #4e73df;
+            margin-bottom: 0.5rem;
+        }
+        textarea.form-control {
+            resize: none;
+        }
+        .previous-requests {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .request-item {
+            border-left: 4px solid #4e73df;
+            transition: all 0.3s;
+        }
+        .request-item:hover {
+            transform: translateX(5px);
+        }
+    </style>
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card custom-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-money-bill-wave me-2"></i>Yeni Avans Talebi
+                        </h3>
+                        <a asp-action="Index" class="btn btn-custom-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Listeye Dön
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show rounded-3" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (limits != null)
+                    {
+                        <div class="alert alert-custom-info">
+                            <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Avans Limitleri</h5>
+                            <p class="mb-0">
+                                Minimum Tutar: <strong>@limits.MinAmount.ToString("C2")</strong><br />
+                                Maksimum Tutar: <strong>@limits.MaxAmount.ToString("C2")</strong>
+                            </p>
+                        </div>
+                    }
+
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Önemli Bilgiler</h5>
+                        <ul class="mb-0">
+                            <li>Avans talepleri en erken yarın, en geç 3 ay sonrası için oluşturulabilir.</li>
+                            <li>Talep tutarı belirlenen limitler dahilinde olmalıdır.</li>
+                            <li>Açıklama alanı en az 10 karakter olmalıdır.</li>
+                            <li>Yüklenen belgeler PDF, JPG, JPEG veya PNG formatında olmalıdır.</li>
+                            <li>Belge boyutu 10 MB'dan büyük olamaz.</li>
+                        </ul>
+                    </div>
+
+                    <form asp-controller="PersonelAdvanceRequests" asp-action="Create" method="post" id="advanceForm" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="All" class="text-danger mb-4"></div>
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Amount" class="form-label">
+                                        <i class="fas fa-lira-sign me-1"></i>Talep Tutarı
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₺</span>
+                                        <input asp-for="Amount" class="form-control" type="number" step="0.01" 
+                                               min="@(limits?.MinAmount ?? 25000)" max="@(limits?.MaxAmount ?? 1000000)" 
+                                               required placeholder="Minimum @(limits?.MinAmount.ToString("C2") ?? "₺25.000,00")"/>
+                                    </div>
+                                    <span asp-validation-for="Amount" class="text-danger mt-1 d-block"></span>
+                                </div>
+
+                                <div class="form-group mt-4">
+                                    <label asp-for="DesiredDate" class="form-label">
+                                        <i class="fas fa-calendar-alt me-1"></i>İstenilen Tarih
+                                    </label>
+                                    <input asp-for="DesiredDate" class="form-control" type="date" 
+                                           min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" 
+                                           max="@DateTime.Now.AddMonths(3).ToString("yyyy-MM-dd")" required />
+                                    <span asp-validation-for="DesiredDate" class="text-danger mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Description" class="form-label">
+                                        <i class="fas fa-align-left me-1"></i>Açıklama
+                                    </label>
+                                    <textarea asp-for="Description" class="form-control" rows="5" 
+                                              minlength="10" maxlength="500" required></textarea>
+                                    <small class="text-muted d-block mt-1">
+                                        <span id="charCount">0</span>/500 karakter
+                                    </small>
+                                    <span asp-validation-for="Description" class="text-danger mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <label class="form-label">
+                                <i class="fas fa-file-upload me-1"></i>Belge Yükleme
+                            </label>
+                            <div class="card border-dashed">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                    <h5 class="mb-2">Belge Yükle</h5>
+                                    <p class="text-muted mb-0">PDF, JPG, JPEG veya PNG formatında</p>
+                                    <input type="file" name="Document" class="form-control mt-3" accept=".pdf,.jpg,.jpeg,.png" />
+                                    <small class="text-muted d-block mt-2">Maksimum dosya boyutu: 10 MB</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-custom-primary w-100" id="submitButton">
+                                <i class="fas fa-paper-plane me-2"></i>Talep Oluştur
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card custom-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>Son Talepleriniz
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (previousRequests.Any())
+                    {
+                        <div class="list-group list-group-flush previous-requests">
+                            @foreach (var request in previousRequests.OrderByDescending(x => x.CreatedAt).Take(5))
+                            {
+                                <div class="list-group-item request-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">@request.RequestNumber</h6>
+                                            <small class="text-muted">@request.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                        </div>
+                                        <span class="badge @(request.Status == RequestStatus.Pending ? "bg-warning" : 
+                                                         request.Status == RequestStatus.Approved ? "bg-success" : "bg-danger")">
+                                            @(request.Status == RequestStatus.Pending ? "Beklemede" : 
+                                              request.Status == RequestStatus.Approved ? "Onaylandı" : "Reddedildi")
+                                        </span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <strong>@request.Amount.ToString("C2")</strong>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-center text-muted">
+                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                            <p class="mb-0">Henüz avans talebi oluşturmadınız.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            $('#advanceForm').on('submit', function () {
+                const $submitButton = $('#submitButton');
+                $submitButton.prop('disabled', true);
+                $submitButton.html('<i class="fas fa-spinner fa-spin me-2"></i>İşleniyor...');
+            });
+
+            $('#Description').on('input', function() {
+                const currentLength = $(this).val().length;
+                $('#charCount').text(currentLength);
+            });
+
+            $('input[type="file"]').on('change', function() {
+                const fileInput = this;
+                if (fileInput.files.length > 0) {
+                    const fileSize = fileInput.files[0].size / 1024 / 1024;
+                    if (fileSize > 10) {
+                        alert('Dosya boyutu 10 MB\'dan büyük olamaz!');
+                        $(this).val('');
+                    }
+                }
+            });
+
+            $('.custom-card').css('opacity', '0').css('transform', 'translateY(20px)');
+            setTimeout(function() {
+                $('.custom-card').css({
+                    'opacity': '1',
+                    'transform': 'translateY(0)',
+                    'transition': 'all 0.5s ease-out'
+                });
+            }, 100);
+        });
+    </script>
+} 

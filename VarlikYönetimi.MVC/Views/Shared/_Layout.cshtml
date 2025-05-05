@@ -1,0 +1,149 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<VarlikYönetimi.Core.Entities.User> UserManager
+@inject VarlikYönetimi.Services.Services.Interfaces.INotificationService NotificationService
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var userRoles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    var unreadNotificationCount = currentUser != null ? await NotificationService.GetUnreadCountAsync(currentUser.Id) : 0;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Avans Yönetimi</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css" />
+    @await RenderSectionAsync("Styles", required: false)
+    <style>
+        .welcome-text {
+            color: #4e73df;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Avans Yönetimi</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Ana Sayfa</a>
+                        </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="Admin" asp-controller="Home" asp-action="Index">Admin Panel</a>
+                            </li>
+                        }
+                        <ul class="navbar-nav me-auto">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                @if (userRoles.Contains("Admin"))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="Admin" asp-controller="AdvanceRequests" asp-action="Index">Avans Talepleri</a>
+                                    </li>
+                                }
+                                else if (userRoles.Contains("BirimMuduru") || userRoles.Contains("Direktor") || 
+                                        userRoles.Contains("GenelMudurYardimcisi") || userRoles.Contains("GenelMudur") || 
+                                        userRoles.Contains("FinansMuduru") || userRoles.Contains("OnMuhasebe"))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="PersonelAdvanceRequests" asp-action="Index">Avans Talepleri</a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="PersonelAdvanceRequests" asp-action="Index">Avans Taleplerim</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="PersonelAdvanceRequests" asp-action="Create">Yeni Avans Talebi</a>
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <span class="welcome-text">
+                                    <i class="fas fa-user-circle"></i> Hoşgeldiniz, @User.Identity.Name
+                                </span>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-bell"></i>
+                                    @if (unreadNotificationCount > 0)
+                                    {
+                                        <span class="badge bg-danger notification-badge">@unreadNotificationCount</span>
+                                    }
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown">
+                                    <div class="notification-header">
+                                        <span>Bildirimler</span>
+                                        <a href="@Url.Action("Index", "Notification")" class="float-end">Tümünü Gör</a>
+                                    </div>
+                                    <div class="notification-body" id="notificationList">
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cog"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" href="@Url.Action("Profile", "User", new { area = "" })">Profil</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form action="@Url.Action("Logout", "Account")" method="post" style="display: inline;">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item">Çıkış Yap</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - Avans Yönetimi
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

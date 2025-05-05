@@ -1,0 +1,76 @@
+/* OM Area Styles */
+.om-dashboard {
+    padding: 20px;
+}
+
+.operation-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.operation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.operation-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.operation-status {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.operation-details {
+    margin-top: 15px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.detail-label {
+    color: #6c757d;
+}
+
+.detail-value {
+    font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .operation-card {
+        margin-bottom: 15px;
+    }
+    
+    .operation-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .operation-status {
+        margin-top: 10px;
+    }
+} 
